@@ -14,15 +14,15 @@ ShowService.prototype.index = function(callback) {
 
 ShowService.prototype.new = function(seriesId, name, callback) {
   if (typeof seriesId !== "undefined") {
-    var m = new this.showModel({
+    var show = new this.showModel({
       seriesId: seriesId,
       name: name
     });
-    m.save(function(error){
+    show.save(function(error){
       if (error) {
         callback(error, null);
       } else {
-        callback(null, m.seriesId);
+        callback(null, show._id);
       }
     });
   } else {

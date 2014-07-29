@@ -18,9 +18,13 @@ var tvdbClient = {
 var ShowService = require('./services/show').ShowService,
     Show = require('./schemas/show');
 
+var EpisodeService = require('./services/episode').EpisodeService,
+    Episode = require('./schemas/episode');
+
 var app = express();
 
 var showService = new ShowService(Show);
+var episodeService = new EpisodeService(Episode);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser());
@@ -50,7 +54,7 @@ app.post('/tvdb/search', function(req, res){
         emptyTag: null
     }, function(err, result){
       console.log(result);
-      res.render('showsSearch', {shows: result.Data});
+      res.render('showsSearch', {shows: result.Data.Series});
     })
   })
 
@@ -74,9 +78,33 @@ app.post('/shows/new', function(req, res){
     }, function(err, result){
 
       showService.new(result.Data.Series.id, result.Data.Series.SeriesName, function(error, response){
-        res.redirect('/shows');
+
+        // console.log('showid: ' + response);
+
+        for (var i = 0; i < result.Data.Episode.length; i++) {
+          var episode = result.Data.Episode[i];
+
+          episodeService.new({
+            _series: response,
+            episodeId: episode.id,
+            name: episode.EpisodeName,
+            description: episode.Overview,
+            episodeNum: episode.EpisodeNumber,
+            seasonNum: episode.SeasonNumber
+          }, function(error, epresponse){
+            if (error) {
+
+              console.log('episode: ' + error);
+            } else {
+
+              console.log('episode: ' + epresponse);
+            }
+            res.redirect('/shows');
+          });
+        };
+
+
       });
-      //res.render('show', {episodes: result.Data.Episode});
 
     })
   });
