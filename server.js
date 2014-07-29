@@ -49,7 +49,6 @@ app.post('/tvdb/search', function(req, res){
         explicitArray: false,
         emptyTag: null
     }, function(err, result){
-      console.log(result.Data);
       res.render('shows', {shows: result.Data.Series});
     })
   })
@@ -57,8 +56,17 @@ app.post('/tvdb/search', function(req, res){
 });
 
 app.post('/shows', function(req, res){
-  client.getSeriesById(req.body.seriesId, function(error, response) {
-    console.log(response);
-    res.render('show', { show: response });
+
+  request.get(tvdbClient.baseURL + tvdbClient.key + '/series/' + req.body.seriesId + '/all/en.xml' , function(request, response){
+    parseXML(response.body, {
+       trim: true,
+        normalize: true,
+        ignoreAttrs: true,
+        explicitArray: false,
+        emptyTag: null
+    }, function(err, result){
+      res.render('show', {episodes: result.Data.Episode});
+    })
   });
+
 });
