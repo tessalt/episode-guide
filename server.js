@@ -2,58 +2,63 @@
 var express = require('express'),
     path = require('path'),
     bodyParser = require('body-parser'),
+    logfmt = require("logfmt"),
     mongoose = require('mongoose'),
-    logfmt = require("logfmt");
+    request = require('request'),
+    parseXML = require("xml2js").parseString,
+    jade = require('jade');
+
+var tvdbClient = {
+  baseURL: 'http://www.thetvdb.com/api/',
+  key: '00E0199BDA221061',
+  lang: 'en'
+};
 
 // custom modules
-var ModelService = require('./services/model').ModelService,
-    Model = require('./schemas/model');
+var ShowService = require('./services/show').ShowService,
+    Show = require('./schemas/show');
 
 var app = express();
+
+var showlService = new ShowService(Show);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser());
 app.use(logfmt.requestLogger());
+app.set('view engine', 'jade');
 
-var port = Number(process.env.PORT || 3000);
+mongoose.connect('mongodb://localhost:27017/show');
+
+var port = Number(process.env.PORT || 4000);
+
 var server = app.listen(port,  function() {
   console.dir("server listening on port " + server.address().port);
 });
 
-mongoose.connect('mongodb://localhost:27017/model');
-
-var modelService = new ModelService(Model);
-
 app.get('/', function(req, res){
-  res.sendfile('index.html');
+  res.render('index');
 });
 
-app.get('/models', function(req, res){
-  modelService.index(function(response){
-    res.json(response);
-  });
+app.post('/tvdb/search', function(req, res){
+
+  request.get(tvdbClient.baseURL + 'GetSeries.php?seriesname=' + req.body.searchString + '&language=' + tvdbClient.lang, function(request, response){
+    parseXML(response.body, {
+       trim: true,
+        normalize: true,
+        ignoreAttrs: true,
+        explicitArray: false,
+        emptyTag: null
+    }, function(err, result){
+      console.log(result.Data);
+      res.render('shows', {shows: result.Data.Series});
+    })
+  })
+
 });
 
-app.post('/models', function(req, res){
-  modelService.new(req.body.name, function(response){
-    res.send(response);
-  });
-});
-
-app.get('/models/:id', function(req, res){
-  modelService.show(req.params.id, function(response){
-    res.send(response);
-  });
-});
-
-app.put('/models/:id', function(req, res){
-  modelService.update(req.params.id, req.body.name, function(response){
-    res.send(response);
-  });
-});
-
-app.delete('/models/:id', function(req, res){
-  modelService.destroy(req.params.id, function(response){
-    res.send(response);
+app.post('/shows', function(req, res){
+  client.getSeriesById(req.body.seriesId, function(error, response) {
+    console.log(response);
+    res.render('show', { show: response });
   });
 });

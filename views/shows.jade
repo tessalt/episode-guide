@@ -1,0 +1,12 @@
+doctype html
+html(lang="en")
+  head
+    title= pageTitle
+  body
+    form(method="POST", action="/shows")
+      each show in shows
+        p
+          input(type="radio", name="seriesId", value=show.seriesid)
+          =show.SeriesName
+
+      input(type="submit", value="submit")
