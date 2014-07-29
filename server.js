@@ -53,8 +53,13 @@ app.post('/tvdb/search', function(req, res){
         explicitArray: false,
         emptyTag: null
     }, function(err, result){
-      console.log(result);
-      res.render('showsSearch', {shows: result.Data.Series});
+      console.log(result.Data.Series);
+
+      if (result.Data.Series.length) {
+        res.render('showsSearch', {shows: result.Data.Series});
+      } else {
+        res.render('showsSearch', {shows: result.Data});
+      }
     })
   })
 
