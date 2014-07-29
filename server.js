@@ -20,7 +20,7 @@ var ShowService = require('./services/show').ShowService,
 
 var app = express();
 
-var showlService = new ShowService(Show);
+var showService = new ShowService(Show);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser());
@@ -49,13 +49,20 @@ app.post('/tvdb/search', function(req, res){
         explicitArray: false,
         emptyTag: null
     }, function(err, result){
-      res.render('shows', {shows: result.Data.Series});
+      console.log(result);
+      res.render('showsSearch', {shows: result.Data});
     })
   })
 
 });
 
-app.post('/shows', function(req, res){
+app.get('/shows', function(req, res){
+  showService.index(function(error, response){
+    res.render('shows', {shows: response});
+  });
+});
+
+app.post('/shows/new', function(req, res){
 
   request.get(tvdbClient.baseURL + tvdbClient.key + '/series/' + req.body.seriesId + '/all/en.xml' , function(request, response){
     parseXML(response.body, {
@@ -65,7 +72,12 @@ app.post('/shows', function(req, res){
         explicitArray: false,
         emptyTag: null
     }, function(err, result){
-      res.render('show', {episodes: result.Data.Episode});
+
+      showService.new(result.Data.Series.id, result.Data.Series.SeriesName, function(error, response){
+        res.redirect('/shows');
+      });
+      //res.render('show', {episodes: result.Data.Episode});
+
     })
   });
 
