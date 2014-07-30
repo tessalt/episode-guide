@@ -1,10 +1,10 @@
 var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+var Episode = require('./episode');
 
 var showSchema = new mongoose.Schema({
   name: String,
   seriesId: Number,
-  episodes: [{ type: Schema.Types.ObjectId, ref: 'Episode' }]
+  episodes: [Episode]
 });
 
 var Show = mongoose.model('Show', showSchema);

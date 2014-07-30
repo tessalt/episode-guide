@@ -28,4 +28,20 @@ Tvdb.prototype.search = function(string, callback) {
   });
 };
 
+Tvdb.prototype.getSeries = function(seriesId, callback) {
+  var url = this.baseURL + this.key + '/series/' + seriesId + '/all/en.xml';
+  request.get(url, function(err, response){
+    parseXML(response.body, {
+      trim: true,
+      normalize: true,
+      ignoreAttrs: true,
+      explicitArray: false,
+      emptyTag: null
+    }, function(error, result){
+      callback(error, (result ? result.Data : null));
+    });
+  });
+};
+
 module.exports = Tvdb;
+

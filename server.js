@@ -62,45 +62,8 @@ app.get('/shows', function(req, res){
 
 app.post('/shows/new', function(req, res){
 
-  request.get(tvdbClient.baseURL + tvdbClient.key + '/series/' + req.body.seriesId + '/all/en.xml' , function(request, response){
-    parseXML(response.body, {
-       trim: true,
-        normalize: true,
-        ignoreAttrs: true,
-        explicitArray: false,
-        emptyTag: null
-    }, function(err, result){
-
-      showService.new(result.Data.Series.id, result.Data.Series.SeriesName, function(error, response){
-
-        // console.log('showid: ' + response);
-
-        for (var i = 0; i < result.Data.Episode.length; i++) {
-          var episode = result.Data.Episode[i];
-
-          episodeService.new({
-            _series: response,
-            episodeId: episode.id,
-            name: episode.EpisodeName,
-            description: episode.Overview,
-            episodeNum: episode.EpisodeNumber,
-            seasonNum: episode.SeasonNumber
-          }, function(error, epresponse){
-            if (error) {
-
-              console.log('episode: ' + error);
-            } else {
-
-              console.log('episode: ' + epresponse);
-            }
-          });
-        };
-            res.redirect('/shows');
-
-
-      });
-
-    })
+  tvdb.getSeries(req.body.seriesId, function(error, response){
+    console.log(response);
   });
 
 });
