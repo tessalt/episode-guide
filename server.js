@@ -65,35 +65,39 @@ app.post('/shows/new', function(req, res){
 
   tvdb.getSeries(req.body.seriesId, function(error, response){
 
-    showService.new(response.Series.id, response.Series.SeriesName, function(show){
+    showService.new(response.Series.id, response.Series.SeriesName, function(error, show){
 
-      var episodes = [];
-      var promises = [];
+      if (!error){
+        var episodes = [];
+        var promises = [];
 
-      for (var i = 0; i < response.Episode.length; i++) {
-        var dfd = Q.defer()
-        var episode = response.Episode[i];
-        episodeService.new({
-          name: episode.EpisodeName,
-          description: episode.Overview
-        }, function(epServiceResponse) {
-          console.log(typeof epServiceResponse)
-          show.episodes.push(epServiceResponse);
-          dfd.resolve(epServiceResponse);
+        for (var i = 0; i < response.Episode.length; i++) {
+          var dfd = Q.defer()
+          var episode = response.Episode[i];
+          episodeService.new({
+            name: episode.EpisodeName,
+            description: episode.Overview
+          }, function(epServiceResponse) {
+            console.log(typeof epServiceResponse)
+            show.episodes.push(epServiceResponse);
+            dfd.resolve(epServiceResponse);
+          });
+          promises.push(dfd.promise);
+        }
+
+        Q.all(promises).then(function(promiseData){
+
+          show.save(function(error){
+            res.redirect('/shows');
+            if (error) {
+              console.log(error);
+            }
+          });
+
         });
-        promises.push(dfd.promise);
+      } else {
+        res.send(error);
       }
-
-      Q.all(promises).then(function(promiseData){
-
-        show.save(function(error){
-          res.redirect('/shows');
-          if (error) {
-            console.log(error);
-          }
-        });
-
-      });
 
     });
 

@@ -14,14 +14,21 @@ ShowService.prototype.index = function(callback) {
 
 ShowService.prototype.new = function(seriesId, name, callback) {
   if (typeof seriesId !== "undefined") {
-    var show = new this.showModel({
-      seriesId: seriesId,
-      name: name,
-      episodes: []
+
+    this.showModel.find( {seriesId: seriesId}, function(err, docs){
+      if (docs) {
+        callback("that series has already been added", null);
+      } else {
+        var show = new this.showModel({
+          seriesId: seriesId,
+          name: name,
+          episodes: []
+        });
+        callback(null, show);
+      }
     });
-    callback(show);
   } else {
-    callback('include series id');
+    callback('include series id', null);
   }
 };
 
