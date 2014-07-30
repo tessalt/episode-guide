@@ -21,10 +21,13 @@ var ShowService = require('./services/show').ShowService,
 var EpisodeService = require('./services/episode').EpisodeService,
     Episode = require('./schemas/episode');
 
+var Tvdb = require('./libs/tvdb.js');
+
 var app = express();
 
 var showService = new ShowService(Show);
 var episodeService = new EpisodeService(Episode);
+var tvdb = new Tvdb('00E0199BDA221061', 'en');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser());
@@ -45,23 +48,9 @@ app.get('/', function(req, res){
 
 app.post('/tvdb/search', function(req, res){
 
-  request.get(tvdbClient.baseURL + 'GetSeries.php?seriesname=' + req.body.searchString + '&language=' + tvdbClient.lang, function(request, response){
-    parseXML(response.body, {
-       trim: true,
-        normalize: true,
-        ignoreAttrs: true,
-        explicitArray: false,
-        emptyTag: null
-    }, function(err, result){
-      console.log(result.Data.Series);
-
-      if (result.Data.Series.length) {
-        res.render('showsSearch', {shows: result.Data.Series});
-      } else {
-        res.render('showsSearch', {shows: result.Data});
-      }
-    })
-  })
+  tvdb.search(req.body.searchString, function(error, response){
+    res.render('showsSearch', {shows: response});
+  });
 
 });
 
@@ -104,9 +93,9 @@ app.post('/shows/new', function(req, res){
 
               console.log('episode: ' + epresponse);
             }
-            res.redirect('/shows');
           });
         };
+            res.redirect('/shows');
 
 
       });
