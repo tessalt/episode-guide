@@ -13,13 +13,15 @@ ShowService.prototype.index = function(callback) {
 };
 
 ShowService.prototype.new = function(seriesId, name, callback) {
+  var _this = this;
   if (typeof seriesId !== "undefined") {
 
     this.showModel.find( {seriesId: seriesId}, function(err, docs){
-      if (docs) {
+      console.log(docs);
+      if (docs.length) {
         callback("that series has already been added", null);
       } else {
-        var show = new this.showModel({
+        var show = new _this.showModel({
           seriesId: seriesId,
           name: name,
           episodes: []
@@ -30,6 +32,16 @@ ShowService.prototype.new = function(seriesId, name, callback) {
   } else {
     callback('include series id', null);
   }
+};
+
+ShowService.prototype.show = function(seriesId, callback) {
+  this.showModel.find( {seriesId: seriesId}, function(err, docs){
+    if (docs.length) {
+      callback(null, docs);
+    } else {
+      callback(err, null);
+    }
+  });
 };
 
 ShowService.prototype.save = function(show, callback) {

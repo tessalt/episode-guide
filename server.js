@@ -104,3 +104,12 @@ app.post('/shows/new', function(req, res){
   });
 
 });
+
+app.get('/shows/:seriesId', function(req, res){
+  showService.show(req.params.seriesId, function(err, response){
+    if (!err) {
+      console.log(response);
+      res.render('show', {show: response[0]});
+    }
+  });
+});

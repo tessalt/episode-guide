@@ -3,4 +3,8 @@ html(lang="en")
   head
     title= pageTitle
   body
-   p maybe it worked
+    h1= show.name
+
+    for episode in show.episodes
+      h2= episode.name
+      p= episode.description
