@@ -1,5 +1,5 @@
 var mongoose = require('mongoose');
-var Episode = require('./episode');
+var Episode = require('./episode').episodeSchema;
 
 var showSchema = new mongoose.Schema({
   name: String,
@@ -9,4 +9,4 @@ var showSchema = new mongoose.Schema({
 
 var Show = mongoose.model('Show', showSchema);
 
-module.exports = Show;
+exports.Show = Show;

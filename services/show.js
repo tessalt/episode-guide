@@ -16,19 +16,19 @@ ShowService.prototype.new = function(seriesId, name, callback) {
   if (typeof seriesId !== "undefined") {
     var show = new this.showModel({
       seriesId: seriesId,
-      name: name
+      name: name,
+      episodes: []
     });
-    show.save(function(error){
-      if (error) {
-        callback(error, null);
-      } else {
-        callback(null, show._id);
-      }
-    });
+    callback(show);
   } else {
     callback('include series id');
   }
 };
 
+ShowService.prototype.save = function(show, callback) {
+  show.save(function(error){
+    callback(error);
+  })
+};
 
 exports.ShowService = ShowService;

@@ -6,7 +6,8 @@ var express = require('express'),
     mongoose = require('mongoose'),
     request = require('request'),
     parseXML = require("xml2js").parseString,
-    jade = require('jade');
+    jade = require('jade'),
+    Q = require('q');
 
 var tvdbClient = {
   baseURL: 'http://www.thetvdb.com/api/',
@@ -16,10 +17,10 @@ var tvdbClient = {
 
 // custom modules
 var ShowService = require('./services/show').ShowService,
-    Show = require('./schemas/show');
+    Show = require('./schemas/show').Show;
 
 var EpisodeService = require('./services/episode').EpisodeService,
-    Episode = require('./schemas/episode');
+    Episode = require('./schemas/episode').Episode;
 
 var Tvdb = require('./libs/tvdb.js');
 
@@ -63,7 +64,39 @@ app.get('/shows', function(req, res){
 app.post('/shows/new', function(req, res){
 
   tvdb.getSeries(req.body.seriesId, function(error, response){
-    console.log(response);
+
+    showService.new(response.Series.id, response.Series.SeriesName, function(show){
+
+      var episodes = [];
+      var promises = [];
+
+      for (var i = 0; i < response.Episode.length; i++) {
+        var dfd = Q.defer()
+        var episode = response.Episode[i];
+        episodeService.new({
+          name: episode.EpisodeName,
+          description: episode.Overview
+        }, function(epServiceResponse) {
+          console.log(typeof epServiceResponse)
+          show.episodes.push(epServiceResponse);
+          dfd.resolve(epServiceResponse);
+        });
+        promises.push(dfd.promise);
+      }
+
+      Q.all(promises).then(function(promiseData){
+
+        show.save(function(error){
+          res.redirect('/shows');
+          if (error) {
+            console.log(error);
+          }
+        });
+
+      });
+
+    });
+
   });
 
 });

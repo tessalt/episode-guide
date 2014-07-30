@@ -7,4 +7,6 @@ var episodeSchema = new mongoose.Schema({
 
 var Episode = mongoose.model('Episode', episodeSchema);
 
-module.exports = Episode;
+exports.Episode = Episode;
+
+exports.episodeSchema = episodeSchema;
