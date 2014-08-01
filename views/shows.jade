@@ -1,4 +1,7 @@
-each show in shows
-  p
-    a(href="/shows/" + show.seriesId)
-      = show.name
+extends ./layout.jade
+block content
+  
+  each show in shows
+    p
+      a(href="/shows/" + show.seriesId)
+        = show.name

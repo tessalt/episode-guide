@@ -1,19 +1,22 @@
 // Dependencies
 var express = require('express'),
     path = require('path'),
+    fs = require('fs'),
     bodyParser = require('body-parser'),
     logfmt = require("logfmt"),
     mongoose = require('mongoose'),
     request = require('request'),
+    session = require('express-session'),
     parseXML = require("xml2js").parseString,
     jade = require('jade'),
+    cookieParser = require('cookie-parser'),
     Q = require('q');
 
-var tvdbClient = {
-  baseURL: 'http://www.thetvdb.com/api/',
-  key: '00E0199BDA221061',
-  lang: 'en'
-};
+var config = JSON.parse(fs.readFileSync("config.json"));
+
+var passport = require('passport')
+  , TwitterStrategy = require('passport-twitter').Strategy;
+
 
 // custom modules
 var ShowService = require('./services/show').ShowService,
@@ -29,11 +32,39 @@ var app = express();
 var showService = new ShowService(Show);
 var episodeService = new EpisodeService(Episode);
 var tvdb = new Tvdb('00E0199BDA221061', 'en');
-
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser());
-app.use(logfmt.requestLogger());
 app.set('view engine', 'jade');
+
+
+app.use(logfmt.requestLogger());
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser());
+app.use(bodyParser());
+app.use(session(
+  { secret: 'keyboard cat' }
+));
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+passport.use(
+  new TwitterStrategy({
+    consumerKey: config.twitter_key,
+    consumerSecret: config.twitter_secret,
+    callbackURL: "http://127.0.0.1:4000/auth/twitter/callback"
+  },
+  function(token, tokenSecret, profile, done) {
+    console.log(profile.id);
+    return done(null, profile);
+  }
+));
+
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+
+passport.deserializeUser(function(obj, done) {
+  done(null, obj);
+});
 
 mongoose.connect('mongodb://localhost:27017/show');
 
@@ -44,8 +75,14 @@ var server = app.listen(port,  function() {
 });
 
 app.get('/', function(req, res){
-  res.render('index');
+  res.render('index');  
 });
+
+app.get('/auth/twitter', passport.authenticate('twitter'));
+
+app.get('/auth/twitter/callback', 
+  passport.authenticate('twitter', { successRedirect: '/',
+                                     failureRedirect: '/login' }));
 
 app.post('/tvdb/search', function(req, res){
 
@@ -113,12 +150,16 @@ app.get('/shows/:seriesId', function(req, res){
   });
 });
 
-app.post('/vote', function(req, res){
-  showService.vote(req.body, function(error, episode){
-    if (error) {
-      res.send(error);
-    } else {
-      res.redirect(req.get('referer'));
-    }
-  })
+app.post('/vote',  function(req, res){
+  if (req.isAuthenticated()) {
+    showService.vote(req.body, function(error, episode){
+      if (error) {
+        res.send(error);
+      } else {
+        res.redirect(req.get('referer'));
+      }
+    })
+  } else {
+    res.send('please authenticate');
+  }
 });
