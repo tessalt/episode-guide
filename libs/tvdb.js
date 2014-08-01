@@ -1,5 +1,6 @@
 var request = require('request'),
-    parseXML = require("xml2js").parseString;
+    parseXML = require("xml2js").parseString,
+    Q = require('q');
 
 var Tvdb = function(key, lang) {
   this.key = key;
@@ -29,6 +30,7 @@ Tvdb.prototype.search = function(string, callback) {
 };
 
 Tvdb.prototype.getSeries = function(seriesId, callback) {
+  var deferred = Q.defer();
   var url = this.baseURL + this.key + '/series/' + seriesId + '/all/en.xml';
   request.get(url, function(err, response){
     parseXML(response.body, {
@@ -38,9 +40,18 @@ Tvdb.prototype.getSeries = function(seriesId, callback) {
       explicitArray: false,
       emptyTag: null
     }, function(error, result){
-      callback(error, (result ? result.Data : null));
+      if (result) {
+        deferred.resolve({
+          id: result.Data.Series.id, 
+          name: result.Data.Series.SeriesName, 
+          episodes: result.Data.Episode
+        });
+      } else {
+        deferred.reject(error);
+      }
     });
   });
+  return deferred.promise;
 };
 
 module.exports = Tvdb;
