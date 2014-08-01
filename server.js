@@ -108,8 +108,17 @@ app.post('/shows/new', function(req, res){
 app.get('/shows/:seriesId', function(req, res){
   showService.show(req.params.seriesId, function(err, response){
     if (!err) {
-      console.log(response);
       res.render('show', {show: response[0]});
     }
   });
+});
+
+app.post('/vote', function(req, res){
+  showService.vote(req.body, function(error, episode){
+    if (error) {
+      res.send(error);
+    } else {
+      res.redirect(req.get('referer'));
+    }
+  })
 });

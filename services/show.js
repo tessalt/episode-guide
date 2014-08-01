@@ -17,7 +17,6 @@ ShowService.prototype.new = function(seriesId, name, callback) {
   if (typeof seriesId !== "undefined") {
 
     this.showModel.find( {seriesId: seriesId}, function(err, docs){
-      console.log(docs);
       if (docs.length) {
         callback("that series has already been added", null);
       } else {
@@ -49,5 +48,15 @@ ShowService.prototype.save = function(show, callback) {
     callback(error);
   })
 };
+
+ShowService.prototype.vote = function(data, callback) {
+  this.showModel.findById(data.show_id, function(error, show){
+    var ep = show.episodes.id(data.episode_id);
+    var currentScore = ep.get('score');
+    var newScore = currentScore + parseInt(data.direction);
+    ep.score = newScore;
+    show.save(callback(error, ep));
+  });
+}
 
 exports.ShowService = ShowService;

@@ -2,7 +2,8 @@ var mongoose = require('mongoose');
 
 var episodeSchema = new mongoose.Schema({
   name: String,
-  description: String
+  description: String,
+  score: Number
 });
 
 var Episode = mongoose.model('Episode', episodeSchema);
