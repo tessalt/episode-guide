@@ -11,9 +11,12 @@ var express = require('express'),
     jade = require('jade'),
     cookieParser = require('cookie-parser'),
     Q = require('q'),
-    passport = require('passport')
+    passport = require('passport');
 
-var config = JSON.parse(fs.readFileSync("config.json"));
+var config = JSON.parse(fs.readFileSync("config.json")),
+  User = require('./schemas/user').User,
+  UserService = require('./services/userService').UserService;
+
 
 var app = express();
 
@@ -34,6 +37,7 @@ app.use('/', routes);
 mongoose.connect('mongodb://localhost:27017/show');
 
 var TwitterStrategy = require('passport-twitter').Strategy;
+var userService = new UserService(User);
 
 passport.use(
   new TwitterStrategy({
@@ -42,8 +46,10 @@ passport.use(
     callbackURL: "http://127.0.0.1:4000/auth/twitter/callback"
   },
   function(token, tokenSecret, profile, done) {
-    console.log(profile.id);
-    return done(null, profile);
+    return userService.new(profile.id)
+      .then(function(){
+        return done(null, profile);
+      });
   }
 ));
 
