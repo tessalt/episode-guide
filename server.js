@@ -31,7 +31,6 @@ var routes = require('./routes');
 
 app.use('/', routes);
 
-
 mongoose.connect('mongodb://localhost:27017/show');
 
 var TwitterStrategy = require('passport-twitter').Strategy;
@@ -58,9 +57,7 @@ passport.deserializeUser(function(obj, done) {
 
 app.get('/auth/twitter', passport.authenticate('twitter'));
 
-app.get('/auth/twitter/callback', 
-  passport.authenticate('twitter', { successRedirect: '/',
-                                     failureRedirect: '/login' }));
+app.get('/auth/twitter/callback', passport.authenticate('twitter', { successRedirect: '/', failureRedirect: '/login' }));
 
 var port = Number(process.env.PORT || 4000);
 

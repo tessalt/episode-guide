@@ -9,13 +9,15 @@ var ShowService = function(showlModel) {
 }
 
 ShowService.prototype.index = function(callback) {
+  var deferred = Q.defer();
   this.showModel.find(function(error, results){
     if (error) {
-      console.log(error, null);
+      deferred.reject(error);
     } else {
-      callback(null, results);
+      deferred.resolve(results);
     }
   });
+  return deferred.promise;
 };
 
 ShowService.prototype.new = function(seriesId, name) {
@@ -42,13 +44,15 @@ ShowService.prototype.new = function(seriesId, name) {
 };
 
 ShowService.prototype.show = function(seriesId, callback) {
-  this.showModel.find( {seriesId: seriesId}, function(err, docs){
+  var deferred = Q.defer();
+  this.showModel.find( {seriesId: seriesId}, function(error, docs){
     if (docs.length) {
-      callback(null, docs);
+      deferred.resolve(docs[0]);
     } else {
-      callback(err, null);
+      deferred.reject(error);
     }
   });
+  return deferred.promise;
 };
 
 ShowService.prototype.save = function(show) {
@@ -57,9 +61,11 @@ ShowService.prototype.save = function(show) {
     if (error) {
       deferred.reject(error);
     } else {
-      deferred.resolve();
+      // console.log(show);
+      deferred.resolve(show);
     }
-  })
+  });
+  return deferred.promise;
 };
 
 ShowService.prototype.vote = function(data, callback) {

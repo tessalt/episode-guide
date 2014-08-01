@@ -9,6 +9,7 @@ var Tvdb = function(key, lang) {
 };
 
 Tvdb.prototype.search = function(string, callback) {
+  var deferred = Q.defer();
   var url = this.baseURL + 'GetSeries.php?seriesname=' + string + '&language=' + this.lang;
   request.get(url, function(err, response){
     parseXML(response.body, {
@@ -19,14 +20,15 @@ Tvdb.prototype.search = function(string, callback) {
       emptyTag: null
     }, function(error, result){
       if (result.Data.Series.length) {
-        callback(error, result.Data.Series);
+        deferred.resolve(result.Data.Series);
       } else if (result.Data) {
-        callback(error, result.Data);
+        deferred.resolve(result.Data);
       } else {
-        callback(error, null);
+        deferred.reject(error);
       }
     });
   });
+  return deferred.promise;
 };
 
 Tvdb.prototype.getSeries = function(seriesId, callback) {

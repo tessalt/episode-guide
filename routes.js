@@ -5,27 +5,47 @@ var express = require('express'),
     EpisodeService = require('./services/episodeService').EpisodeService,
     Episode = require('./schemas/episode').Episode,
     Tvdb = require('./libs/tvdb.js'),
-    Q = require('q');
+    Q = require('q'),
+    fs = require('fs'),
+    config = JSON.parse(fs.readFileSync("config.json"));
 
 
-var showService = new ShowService(Show);
-var episodeService = new EpisodeService(Episode);
-var tvdb = new Tvdb('00E0199BDA221061', 'en');
+var showService = new ShowService(Show),
+    episodeService = new EpisodeService(Episode),
+    tvdb = new Tvdb(config.tvdb_key, 'en');
 
 router.get('/', function(req, res){
   res.render('index');  
 });
 
 router.post('/tvdb/search', function(req, res){
-  tvdb.search(req.body.searchString, function(error, response){
-    res.render('showsSearch', {shows: response});
-  });
+  return tvdb.search(req.body.searchString)
+    .then(function(response){
+      res.render('showsSearch', {shows: response}); 
+    })
+    .fail(function(error){
+      res.send(error);
+    });
 });
 
 router.get('/shows', function(req, res){
-  showService.index(function(error, response){
-    res.render('shows', {shows: response});
-  });
+  return showService.index()
+    .then(function(response){
+      res.render('shows', {shows: response})
+    })
+    .fail(function(error){
+      res.send(error);
+    });
+});
+
+router.get('/shows/:seriesId', function(req, res){
+  return showService.show(req.params.seriesId)
+    .then(function(response){
+      res.render('show', {show: response});
+    })
+    .fail(function(error){
+      res.send(error);
+    });
 });
 
 router.post('/shows/new', function(req, res){
@@ -36,23 +56,15 @@ router.post('/shows/new', function(req, res){
           return showService.saveEpisodes(show, showData.episodes)
         })
         .then(function(showWithEps){
-          showService.save(showWithEps);
+          return showService.save(showWithEps);
         })
-        .then(function(){
-          res.redirect('/shows');
+        .then(function(show){
+          res.redirect('/shows/' + show.seriesId);
         })
         .fail(function(error){
-          res.send(error);
+          res.send('error: ' + error);
         })
     });
-});
-
-router.get('/shows/:seriesId', function(req, res){
-  showService.show(req.params.seriesId, function(err, response){    
-    if (!err) {
-      res.render('show', {show: response[0]});
-    }
-  });
 });
 
 router.post('/vote',  function(req, res){
