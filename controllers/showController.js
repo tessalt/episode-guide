@@ -1,20 +1,20 @@
 var Q = require('q'),
     mongoose = require('mongoose'),
-    Service = require('./service').Service,
-    EpisodeService = require('./episodeService').EpisodeService,
+    Controller = require('./controller').Controller,
+    EpisodeController = require('./episodeController').EpisodeController,
     Episode = require('../schemas/episode').Episode,
     User = require('../schemas/user').User,
     logger = require('tracer').console();
 
-var episodeService = new EpisodeService(Episode);
+var episodeController = new EpisodeController(Episode);
 
-var ShowService = function(model) {
-  Service.call(this, model);
+var ShowController = function(model) {
+  Controller.call(this, model);
 }
 
-ShowService.prototype = new Service();
+ShowController.prototype = new Controller();
 
-ShowService.prototype.index = function(callback) {
+ShowController.prototype.index = function(callback) {
   var deferred = Q.defer();
   this.model.find(function(error, results){
     if (error) {
@@ -26,7 +26,7 @@ ShowService.prototype.index = function(callback) {
   return deferred.promise;
 };
 
-ShowService.prototype.new = function(seriesId, name) {
+ShowController.prototype.new = function(seriesId, name) {
   var deferred = Q.defer();
   if (typeof seriesId !== "undefined") {
 
@@ -49,7 +49,7 @@ ShowService.prototype.new = function(seriesId, name) {
   return deferred.promise;
 };
 
-ShowService.prototype.show = function(seriesId, callback) {
+ShowController.prototype.show = function(seriesId, callback) {
   var deferred = Q.defer();
   this.model.find( {seriesId: seriesId}, function(error, docs){
     if (docs.length) {
@@ -61,11 +61,11 @@ ShowService.prototype.show = function(seriesId, callback) {
   return deferred.promise;
 };
 
-ShowService.prototype.saveEpisodes = function(show, rawEps) {
+ShowController.prototype.saveEpisodes = function(show, rawEps) {
   var deferred = Q.defer();
 
   rawEps.forEach(function (ep, i, arr){
-    episodeService.new({
+    episodeController.new({
       name: ep.EpisodeName,
       description: ep.Overview,
       season: ep.SeasonNumber,
@@ -86,8 +86,7 @@ ShowService.prototype.saveEpisodes = function(show, rawEps) {
   return deferred.promise;
 }
 
-
-ShowService.prototype.vote = function(data, userId) {
+ShowController.prototype.vote = function(data, userId) {
   var _this = this;
   var deferred = Q.defer();
 
@@ -123,4 +122,4 @@ ShowService.prototype.vote = function(data, userId) {
   return deferred.promise;
 }
 
-exports.ShowService = ShowService;
+exports.ShowController = ShowController;

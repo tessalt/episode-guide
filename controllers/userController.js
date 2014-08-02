@@ -1,27 +1,11 @@
 var Q = require('q'),
     logger = require('tracer').console();
 
-var UserService = function(userModel) {
+var UserController = function(userModel) {
   this.userModel = userModel;
 }
 
-UserService.prototype.new = function(twitterId) {
-  var deferred = Q.defer();
-  var user = new this.userModel({
-    twitterId: twitterId,
-    votes: []
-  });
-  user.save(function(error){
-    if (error) {
-      deferred.reject(error);
-    } else {
-      deferred.resolve(user);
-    }
-  });
-  return deferred.promise;
-};
-
-UserService.prototype.findOrCreate = function(twitterId) {
+UserController.prototype.findOrCreate = function(twitterId) {
   var deferred = Q.defer();
   this.userModel.find({twitterId: twitterId}, function(error, docs){
     if (docs.length > 0) {
@@ -45,4 +29,4 @@ UserService.prototype.findOrCreate = function(twitterId) {
   return deferred.promise;
 };
 
-exports.UserService = UserService;
+exports.UserController = UserController;

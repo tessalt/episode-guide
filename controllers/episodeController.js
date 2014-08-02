@@ -1,8 +1,8 @@
-var EpisodeService = function(episodeModel) {
+var EpisodeController = function(episodeModel) {
   this.episodeModel = episodeModel;
 }
 
-EpisodeService.prototype.new = function(data, callback) {
+EpisodeController.prototype.new = function(data, callback) {
   var episode = new this.episodeModel({
     name: data.name,
     description: data.description,
@@ -13,4 +13,4 @@ EpisodeService.prototype.new = function(data, callback) {
   callback(episode);
 };
 
-exports.EpisodeService = EpisodeService;
+exports.EpisodeController = EpisodeController;

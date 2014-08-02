@@ -1,8 +1,8 @@
 var express = require('express'),
     router = express.Router(),
-    ShowService = require('./services/showService').ShowService,
+    ShowController = require('./services/showController').ShowController,
     Show = require('./schemas/show').Show,
-    EpisodeService = require('./services/episodeService').EpisodeService,
+    EpisodeController = require('./services/episodeController').EpisodeController,
     Episode = require('./schemas/episode').Episode,
     Tvdb = require('./libs/tvdb.js'),
     Q = require('q'),
@@ -10,12 +10,12 @@ var express = require('express'),
     config = JSON.parse(fs.readFileSync("config.json"));
 
 
-var showService = new ShowService(Show),
-    episodeService = new EpisodeService(Episode),
+var showController = new ShowController(Show),
+    episodeController = new EpisodeController(Episode),
     tvdb = new Tvdb(config.tvdb_key, 'en');
 
 router.get('/', function(req, res){
-  return showService.index()
+  return showController.index()
   .then(function(response){
     res.render('index', {shows: response})
   })
@@ -27,7 +27,7 @@ router.get('/', function(req, res){
 router.post('/tvdb/search', function(req, res){
   return tvdb.search(req.body.searchString)
     .then(function(response){
-      res.render('showsSearch', {shows: response}); 
+      res.render('showsSearch', {shows: response});
     })
     .fail(function(error){
       res.send(error);
@@ -35,7 +35,7 @@ router.post('/tvdb/search', function(req, res){
 });
 
 router.get('/shows', function(req, res){
-  return showService.index()
+  return showController.index()
     .then(function(response){
       res.render('shows', {shows: response})
     })
@@ -45,7 +45,7 @@ router.get('/shows', function(req, res){
 });
 
 router.get('/shows/:seriesId', function(req, res){
-  return showService.show(req.params.seriesId)
+  return showController.show(req.params.seriesId)
     .then(function(response){
       res.render('show', {show: response});
     })
@@ -56,13 +56,13 @@ router.get('/shows/:seriesId', function(req, res){
 
 router.post('/shows/new', function(req, res){
   return tvdb.getSeries(req.body.seriesId)
-    .then(function(showData){      
-      return showService.new(showData.id, showData.name)
+    .then(function(showData){
+      return showController.new(showData.id, showData.name)
         .then(function(show){
-          return showService.saveEpisodes(show, showData.episodes)
+          return showController.saveEpisodes(show, showData.episodes)
         })
         .then(function(showWithEps){
-          return showService.save(showWithEps);
+          return showController.save(showWithEps);
         })
         .then(function(show){
           res.redirect('/shows/' + show.seriesId);
@@ -76,7 +76,7 @@ router.post('/shows/new', function(req, res){
 router.post('/vote',  function(req, res){
   // console.dir(req.session.passport.user.id);
   if (req.isAuthenticated()) {
-    return showService.vote(req.body, req.session.passport.user.id) 
+    return showController.vote(req.body, req.session.passport.user.id)
       .then(function(){
         res.redirect(req.get('referer'));
       })

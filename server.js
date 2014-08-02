@@ -16,7 +16,7 @@ var express = require('express'),
 
 var config = JSON.parse(fs.readFileSync("config.json")),
   User = require('./schemas/user').User,
-  UserService = require('./services/userService').UserService;
+  UserController = require('./services/UserController').UserController;
 
 
 var app = express();
@@ -38,7 +38,7 @@ app.use('/', routes);
 mongoose.connect('mongodb://localhost:27017/show');
 
 var TwitterStrategy = require('passport-twitter').Strategy;
-var userService = new UserService(User);
+var userController = new UserController(User);
 
 passport.use(
   new TwitterStrategy({
@@ -47,9 +47,8 @@ passport.use(
     callbackURL: "http://127.0.0.1:4000/auth/twitter/callback"
   },
   function(token, tokenSecret, profile, done) {
-    return userService.findOrCreate(profile.id)
+    return userController.findOrCreate(profile.id)
       .then(function(user){
-        // console.log(user);
         return done(null, profile);
       });
   }

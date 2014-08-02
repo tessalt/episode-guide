@@ -1,10 +1,10 @@
 var Q = require('q');
 
-var Service = function(model) {
+var Controller = function(model) {
   this.model = model;
 }
 
-Service.prototype.save = function(model) {
+Controller.prototype.save = function(model) {
   var deferred = Q.defer()
   model.save(function(error){
     if (error) {
@@ -16,4 +16,4 @@ Service.prototype.save = function(model) {
   return deferred.promise;
 };
 
-exports.Service = Service;
+exports.Controller = Controller;
