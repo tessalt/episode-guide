@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 var episodeSchema = new mongoose.Schema({
-  name: String,
+  name: {type: String, required: true},
   description: String,
   score: Number,
   episodeNumber: Number,

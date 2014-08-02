@@ -60,6 +60,7 @@ if (process.env.NODE_ENV !== 'debug') {
             id: resp.twitterId
           }
         };
+        req.session.debug = true;
         req.isAuthenticated = function(){
           return true;
         };
