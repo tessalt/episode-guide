@@ -15,7 +15,13 @@ var showService = new ShowService(Show),
     tvdb = new Tvdb(config.tvdb_key, 'en');
 
 router.get('/', function(req, res){
-  res.render('index');  
+  return showService.index()
+  .then(function(response){
+    res.render('index', {shows: response})
+  })
+  .fail(function(error){
+    res.send(error);
+  });
 });
 
 router.post('/tvdb/search', function(req, res){
@@ -68,14 +74,15 @@ router.post('/shows/new', function(req, res){
 });
 
 router.post('/vote',  function(req, res){
+  // console.dir(req.session.passport.user.id);
   if (req.isAuthenticated()) {
-    showService.vote(req.body, function(error, episode){
-      if (error) {
-        res.send(error);
-      } else {
+    return showService.vote(req.body, req.session.passport.user.id) 
+      .then(function(){
         res.redirect(req.get('referer'));
-      }
-    })
+      })
+      .fail(function(error){
+        res.send(error);
+      });
   } else {
     res.send('please authenticate');
   }

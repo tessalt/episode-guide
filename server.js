@@ -46,8 +46,9 @@ passport.use(
     callbackURL: "http://127.0.0.1:4000/auth/twitter/callback"
   },
   function(token, tokenSecret, profile, done) {
-    return userService.new(profile.id)
-      .then(function(){
+    return userService.findOrCreate(profile.id)
+      .then(function(user){
+        // console.log(profile);
         return done(null, profile);
       });
   }

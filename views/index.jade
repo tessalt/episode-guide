@@ -3,3 +3,9 @@ block content
   form(method="POST", action="/tvdb/search")
     input(type="text", name="searchString")
     input(type="submit", value="submit")
+
+    
+  each show in shows
+    p
+      a(href="/shows/" + show.seriesId)
+        = show.name
