@@ -1,9 +1,0 @@
-extends ./layout.jade
-block content
-  form(method="POST", action="/shows/new")
-    each show in shows
-      p
-        input(type="radio", name="seriesId", value=show.seriesid)
-        =show.SeriesName
-
-    input(type="submit", value="submit")

@@ -15,47 +15,40 @@ var showController = new ShowController(Show),
     tvdb = new Tvdb(config.tvdb_key, 'en');
 
 router.get('/', function(req, res){
-  console.dir(req.session);
-  return showController.index()
-  .then(function(response){
-    res.render('index', {shows: response})
-  })
-  .fail(function(error){
-    res.send(error);
-  });
+  res.sendfile('index.html');
 });
 
 router.post('/tvdb/search', function(req, res){
   return tvdb.search(req.body.searchString)
     .then(function(response){
-      res.render('showsSearch', {shows: response});
+      res.json(response);
     })
     .fail(function(error){
       res.send(error);
     });
 });
 
-router.get('/shows', function(req, res){
+router.get('/api/shows', function(req, res){
   return showController.index()
     .then(function(response){
-      res.render('shows', {shows: response})
+      res.json(response)
     })
     .fail(function(error){
       res.send(error);
     });
 });
 
-router.get('/shows/:seriesId', function(req, res){
+router.get('/api/shows/:seriesId', function(req, res){
   return showController.show(req.params.seriesId)
     .then(function(response){
-      res.render('show', {show: response});
+      res.json(response);
     })
     .fail(function(error){
       res.send(error);
     });
 });
 
-router.post('/shows/new', function(req, res){
+router.post('/api/shows/new', function(req, res){
   return tvdb.getSeries(req.body.seriesId)
     .then(function(showData){
       return showController.new(showData.id, showData.name)
@@ -66,19 +59,19 @@ router.post('/shows/new', function(req, res){
           return showController.save(showWithEps);
         })
         .then(function(show){
-          res.redirect('/shows/' + show.seriesId);
+          res.json(show);
         })
         .fail(function(error){
-          res.send('error: ' + error);
+          res.send(error);
         })
     });
 });
 
-router.post('/vote',  function(req, res){
+router.post('/api/vote',  function(req, res){
   if (req.isAuthenticated()) {
     return showController.vote(req.body, req.session.passport.user.id)
       .then(function(){
-        res.redirect(req.get('referer'));
+        res.send('Voted');
       })
       .fail(function(error){
         res.send(error);

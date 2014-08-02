@@ -20,7 +20,6 @@ var config = JSON.parse(fs.readFileSync("config.json")),
 
 var app = express();
 
-app.set('view engine', 'jade');
 app.use(logfmt.requestLogger());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
