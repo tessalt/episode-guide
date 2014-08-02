@@ -16,8 +16,7 @@ var express = require('express'),
 
 var config = JSON.parse(fs.readFileSync("config.json")),
   User = require('./schemas/user').User,
-  UserController = require('./services/UserController').UserController;
-
+  UserController = require('./controllers/UserController').UserController;
 
 var app = express();
 
@@ -33,26 +32,41 @@ app.use(passport.session());
 // custom modules
 var routes = require('./routes');
 
-app.use('/', routes);
-
 mongoose.connect('mongodb://localhost:27017/show');
 
 var TwitterStrategy = require('passport-twitter').Strategy;
 var userController = new UserController(User);
 
-passport.use(
-  new TwitterStrategy({
-    consumerKey: config.twitter_key,
-    consumerSecret: config.twitter_secret,
-    callbackURL: "http://127.0.0.1:4000/auth/twitter/callback"
-  },
-  function(token, tokenSecret, profile, done) {
-    return userController.findOrCreate(profile.id)
-      .then(function(user){
-        return done(null, profile);
+if (process.env.NODE_ENV !== 'debug') {
+  passport.use(
+    new TwitterStrategy({
+      consumerKey: config.twitter_key,
+      consumerSecret: config.twitter_secret,
+      callbackURL: "http://127.0.0.1:4000/auth/twitter/callback"
+    },
+    function(token, tokenSecret, profile, done) {
+      return userController.findOrCreate(profile.id)
+        .then(function(user){
+          return done(null, profile);
+        });
+    }
+  ));
+} else {
+  app.use(function(req, res, next){
+    return userController.findOrCreate(config.superuser_id)
+      .then(function(resp){
+        req.session.passport = {
+          user: {
+            id: resp.twitterId
+          }
+        };
+        req.isAuthenticated = function(){
+          return true;
+        };
+        next();
       });
-  }
-));
+  })
+}
 
 passport.serializeUser(function(user, done) {
   done(null, user);
@@ -65,6 +79,9 @@ passport.deserializeUser(function(obj, done) {
 app.get('/auth/twitter', passport.authenticate('twitter'));
 
 app.get('/auth/twitter/callback', passport.authenticate('twitter', { successRedirect: '/', failureRedirect: '/login' }));
+
+app.use('/', routes);
+
 
 var port = Number(process.env.PORT || 4000);
 

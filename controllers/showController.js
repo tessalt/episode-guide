@@ -97,7 +97,8 @@ ShowController.prototype.vote = function(data, userId) {
     var episode = show.episodes.id(data.episode_id);
     findUser.then(function(users){
       var user = users[0];
-      if (user.votes.indexOf(episode._id) > 0) {
+      console.log(episode._id);
+      if (user.votes.indexOf(episode._id) >= 0) {
         deferred.reject('you\'ve already voted for this episode');
       } else {
         var currentScore = episode.get('score');

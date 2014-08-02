@@ -1,8 +1,8 @@
 var express = require('express'),
     router = express.Router(),
-    ShowController = require('./services/showController').ShowController,
+    ShowController = require('./controllers/showController').ShowController,
     Show = require('./schemas/show').Show,
-    EpisodeController = require('./services/episodeController').EpisodeController,
+    EpisodeController = require('./controllers/episodeController').EpisodeController,
     Episode = require('./schemas/episode').Episode,
     Tvdb = require('./libs/tvdb.js'),
     Q = require('q'),
@@ -15,6 +15,7 @@ var showController = new ShowController(Show),
     tvdb = new Tvdb(config.tvdb_key, 'en');
 
 router.get('/', function(req, res){
+  console.dir(req.session);
   return showController.index()
   .then(function(response){
     res.render('index', {shows: response})
@@ -74,7 +75,6 @@ router.post('/shows/new', function(req, res){
 });
 
 router.post('/vote',  function(req, res){
-  // console.dir(req.session.passport.user.id);
   if (req.isAuthenticated()) {
     return showController.vote(req.body, req.session.passport.user.id)
       .then(function(){
