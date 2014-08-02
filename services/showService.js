@@ -63,11 +63,8 @@ ShowService.prototype.show = function(seriesId, callback) {
 
 ShowService.prototype.saveEpisodes = function(show, rawEps) {
   var deferred = Q.defer();
-  var episodes = [];
-  var promises = [];
 
   rawEps.forEach(function (ep, i, arr){
-    var dfd = Q.defer();
     episodeService.new({
       name: ep.EpisodeName,
       description: ep.Overview,
@@ -76,18 +73,14 @@ ShowService.prototype.saveEpisodes = function(show, rawEps) {
       score: 0
     }, function(episode){
       show.episodes.push(episode);
-      dfd.resolve(episode);
     });
-    promises.push(dfd.promise);
   });
 
-  Q.all(promises).then(function(){
-    show.save(function(error){
-      if (!error) {
-        deferred.resolve(show);
-      } else
-        deferred.reject(error);
-    });
+  show.save(function(error){
+    if (!error) {
+      deferred.resolve(show);
+    } else
+      deferred.reject(error);
   });
 
   return deferred.promise;
