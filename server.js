@@ -4,6 +4,7 @@ var express = require('express'),
     fs = require('fs'),
     bodyParser = require('body-parser'),
     logfmt = require("logfmt"),
+    logger = require('tracer').console(),
     mongoose = require('mongoose'),
     request = require('request'),
     session = require('express-session'),
@@ -48,7 +49,7 @@ passport.use(
   function(token, tokenSecret, profile, done) {
     return userService.findOrCreate(profile.id)
       .then(function(user){
-        // console.log(profile);
+        // console.log(user);
         return done(null, profile);
       });
   }

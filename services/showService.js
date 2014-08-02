@@ -1,7 +1,9 @@
 var Q = require('q'),
+    mongoose = require('mongoose'),
     EpisodeService = require('./episodeService').EpisodeService,
     Episode = require('../schemas/episode').Episode,
-    User = require('../schemas/user').User;
+    User = require('../schemas/user').User,
+    logger = require('tracer').console();
 
 var episodeService = new EpisodeService(Episode);
 
@@ -80,7 +82,8 @@ ShowService.prototype.saveEpisodes = function(show, rawEps) {
       name: ep.EpisodeName,
       description: ep.Overview,
       season: ep.SeasonNumber,
-      episodeNumber: ep.EpisodeNumber
+      episodeNumber: ep.EpisodeNumber,
+      score: 0
     }, function(episode){
       show.episodes.push(episode);
       dfd.resolve(episode);
@@ -92,7 +95,7 @@ ShowService.prototype.saveEpisodes = function(show, rawEps) {
     show.save(function(error){
       if (!error) {
         deferred.resolve(show);
-      } else 
+      } else
         deferred.reject(error);
     });
   });
@@ -106,12 +109,30 @@ ShowService.prototype.vote = function(data, userId) {
   var deferred = Q.defer();
 
   var findShow = this.showModel.findById(data.show_id).exec();
-  // console.log(typeof userId);
   var findUser = User.find({twitterId: parseInt(userId)}).exec();
-  // console.log(User);
+
   findShow.then(function(show){
-    User.find(function(thing){
-      console.log(thing);
+    var episode = show.episodes.id(data.episode_id);
+    findUser.then(function(users){
+      var user = users[0];
+      if (user.votes.indexOf(episode._id) > 0) {
+        deferred.reject('you\'ve already voted for this episode');
+      } else {
+        var currentScore = episode.get('score');
+        episode.score = currentScore + parseFloat(data.direction);
+
+        return _this.save(show)
+          .then(function(item){
+            user.votes.push(episode._id);
+            user.save()
+          })
+          .then(function(){
+            deferred.resolve()
+          })
+          .fail(function(error){
+            deferred.reject(error);
+          })
+      }
     })
   })
 
@@ -142,7 +163,7 @@ ShowService.prototype.vote = function(data, userId) {
   //           .fail(function(error){
   //             deferred.reject(error);
   //           });
-  //       }        
+  //       }
   //     })
   //     .fail(function(error){
   //       deferred.reject(error);
