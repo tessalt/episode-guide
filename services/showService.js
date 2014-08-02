@@ -1,5 +1,6 @@
 var Q = require('q'),
     mongoose = require('mongoose'),
+    Service = require('./service').Service,
     EpisodeService = require('./episodeService').EpisodeService,
     Episode = require('../schemas/episode').Episode,
     User = require('../schemas/user').User,
@@ -7,13 +8,15 @@ var Q = require('q'),
 
 var episodeService = new EpisodeService(Episode);
 
-var ShowService = function(showlModel) {
-  this.showModel = showlModel;
+var ShowService = function(model) {
+  Service.call(this, model);
 }
+
+ShowService.prototype = new Service();
 
 ShowService.prototype.index = function(callback) {
   var deferred = Q.defer();
-  this.showModel.find(function(error, results){
+  this.model.find(function(error, results){
     if (error) {
       deferred.reject(error);
     } else {
@@ -27,11 +30,11 @@ ShowService.prototype.new = function(seriesId, name) {
   var deferred = Q.defer();
   if (typeof seriesId !== "undefined") {
 
-    this.showModel.find( {seriesId: seriesId}, function(err, docs){
+    this.model.find( {seriesId: seriesId}, function(err, docs){
       if (docs.length) {
         deferred.reject("that series has already been added");
       } else {
-        var show = new this.showModel({
+        var show = new this.model({
           seriesId: seriesId,
           name: name,
           episodes: []
@@ -48,24 +51,11 @@ ShowService.prototype.new = function(seriesId, name) {
 
 ShowService.prototype.show = function(seriesId, callback) {
   var deferred = Q.defer();
-  this.showModel.find( {seriesId: seriesId}, function(error, docs){
+  this.model.find( {seriesId: seriesId}, function(error, docs){
     if (docs.length) {
       deferred.resolve(docs[0]);
     } else {
       deferred.reject(error);
-    }
-  });
-  return deferred.promise;
-};
-
-ShowService.prototype.save = function(show) {
-  var deferred = Q.defer()
-  show.save(function(error){
-    if (error) {
-      deferred.reject(error);
-    } else {
-      // console.log(show);
-      deferred.resolve(show);
     }
   });
   return deferred.promise;
@@ -108,7 +98,7 @@ ShowService.prototype.vote = function(data, userId) {
   var _this = this;
   var deferred = Q.defer();
 
-  var findShow = this.showModel.findById(data.show_id).exec();
+  var findShow = this.model.findById(data.show_id).exec();
   var findUser = User.find({twitterId: parseInt(userId)}).exec();
 
   findShow.then(function(show){
@@ -124,9 +114,10 @@ ShowService.prototype.vote = function(data, userId) {
         return _this.save(show)
           .then(function(item){
             user.votes.push(episode._id);
-            user.save()
+            _this.save(user);
           })
-          .then(function(){
+          .then(function(one){
+            console.log('things?');
             deferred.resolve()
           })
           .fail(function(error){
@@ -135,43 +126,6 @@ ShowService.prototype.vote = function(data, userId) {
       }
     })
   })
-
-
-  // findShowById(data.show_id)
-  //   .then(function(show){
-  //     return findUser({twitterId: userId})
-  //     .then(function(user){
-  //       console.log('userId ' + userId )
-  //       console.log(user);
-  //       var ep = show.episodes.id(data.episode_id);
-  //       if (user.votes.indexOf(ep._id)) {
-  //         deferred.reject('you have already voted');
-  //       } else {
-  //         var currentScore = ep.get('score');
-  //         ep.score = currentScore + parseInt(data.direction);
-  //         return _this.save(show)
-  //           .then(function(show){
-  //             user.votes.push(ep._id);
-  //             user.save(function(error){
-  //               if (error) {
-  //                 deferred.reject(error)
-  //               } else {
-  //                 deferred.resolve(show);
-  //               }
-  //             })
-  //           })
-  //           .fail(function(error){
-  //             deferred.reject(error);
-  //           });
-  //       }
-  //     })
-  //     .fail(function(error){
-  //       deferred.reject(error);
-  //     })
-  //   })
-  //   .fail(function(error){
-  //     deferred.reject(docs);
-  //   });
 
   return deferred.promise;
 }
