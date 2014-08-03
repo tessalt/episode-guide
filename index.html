@@ -7,5 +7,33 @@
   </head>
   <body>
     ember app thing
+
+    <script type="text/x-handlebars">
+
+    {{outlet}}
+
+    </script>
+
+    <script type="text/x-handlebars" id="shows">
+      {{#each model}}
+        <p>{{#link-to 'show' this}} {{name}} {{/link-to}}</p>
+      {{/each}}
+      {{outlet}}
+    </script>
+
+    <script type="text/x-handlebars" id="show">
+      <h1>{{name}}</h1>
+
+      {{#each episodes}}
+        <h2>{{name}}</h2>
+        <p>{{description}}</p>
+      {{/each}}
+    </script>
+
+
+    <script src="js/libs/jquery-1.10.2.js"></script>
+    <script src="js/libs/handlebars-1.1.2.js"></script>
+    <script src="js/libs/ember-1.6.1.js"></script>
+    <script src="js/app.js"></script>
   </body>
 </html>
