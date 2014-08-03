@@ -10,7 +10,11 @@ var Tvdb = function(key, lang) {
 
 Tvdb.prototype.search = function(string, callback) {
   var deferred = Q.defer();
-  var url = this.baseURL + 'GetSeries.php?seriesname=' + string + '&language=' + this.lang;
+  if (string) {
+    var url = this.baseURL + 'GetSeries.php?seriesname=' + string + '&language=' + this.lang;
+  } else {
+    var url = this.baseURL + 'GetSeries.php?language=' + this.lang;
+  }
   request.get(url, function(err, response){
     parseXML(response.body, {
       trim: true,
@@ -19,12 +23,12 @@ Tvdb.prototype.search = function(string, callback) {
       explicitArray: false,
       emptyTag: null
     }, function(error, result){
-      if (result.Data.Series.length) {
+      if (result.Data && result.Data.Series.length) {
         deferred.resolve(result.Data.Series);
       } else if (result.Data) {
         deferred.resolve(result.Data);
       } else {
-        deferred.reject(error);
+        deferred.reject(result.Error);
       }
     });
   });
@@ -44,8 +48,8 @@ Tvdb.prototype.getSeries = function(seriesId, callback) {
     }, function(error, result){
       if (result) {
         deferred.resolve({
-          id: result.Data.Series.id, 
-          name: result.Data.Series.SeriesName, 
+          id: result.Data.Series.id,
+          name: result.Data.Series.SeriesName,
           episodes: result.Data.Episode
         });
       } else {

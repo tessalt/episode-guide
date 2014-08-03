@@ -18,8 +18,8 @@ router.get('/', function(req, res){
   res.sendfile('index.html');
 });
 
-router.post('/tvdb/search', function(req, res){
-  return tvdb.search(req.body.searchString)
+router.get('/tvdb/search/:query', function(req, res){
+  return tvdb.search(req.params.query)
     .then(function(response){
       res.json(response);
     })

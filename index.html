@@ -6,12 +6,21 @@
     </style>
   </head>
   <body>
-    ember app thing
 
     <script type="text/x-handlebars">
 
-    {{outlet}}
+      {{#link-to 'shows'}}Home{{/link-to}}
 
+      {{input type="text" value=search action="query"}}
+
+      {{outlet}}
+
+    </script>
+
+    <script type="text/x-handlebars" id="availableshows">
+      {{#each model}}
+        <p>{{SeriesName}}</p>
+      {{/each}}
     </script>
 
     <script type="text/x-handlebars" id="shows">
@@ -23,7 +32,6 @@
 
     <script type="text/x-handlebars" id="show">
       <h1>{{name}}</h1>
-
       {{#each episodes}}
         <h2>{{name}}</h2>
         <p>{{description}}</p>
