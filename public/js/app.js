@@ -2,6 +2,7 @@ App = Ember.Application.create({});
 
 App.Router.map(function(){
   this.resource('shows');
+  this.resource('shows.new', {path: 'shows/new'});
   this.resource('show', {path: 'shows/:seriesId'});
   this.resource('availableshows', {path: 'availableshows/:query'});
 });
@@ -22,21 +23,33 @@ App.ShowRoute = Ember.Route.extend({
   }
 });
 
+App.Availableshows = {
+  findByQuery: function(query) {
+    return $.getJSON('/tvdb/search/' + query).then(function(shows){
+      console.log(shows);
+      return shows;
+    })
+  }
+}
+
 App.AvailableshowsRoute = Ember.Route.extend({
   model: function(params) {
-  console.log(params.query);
-    return $.getJSON('/tvdb/search/' + params.query).then(function(results){
-      return results;
+    return params;
+  },
+  setupController: function(controller, model) {
+    var query = model.query;
+    $.getJSON('/tvdb/search/' + query).then(function(shows){
+      controller.set('model', shows);
     });
   }
 });
 
-App.ApplicationController = Ember.Controller.extend({
-  search: '',
+App.ShowsNewController = Ember.Controller.extend({
+  searchString: '',
   actions: {
-    query: function() {
-      var query = this.get('search');
-      this.transitionToRoute('availableshows', query);
-    }
+    searchSubmit: function(value) {
+      var query = this.get('searchString');
+      this.transitionToRoute('availableshows', {query: query});
+    }.observes('searchString')
   }
 });

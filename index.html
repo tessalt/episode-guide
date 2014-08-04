@@ -10,27 +10,20 @@
     <script type="text/x-handlebars">
 
       {{#link-to 'shows'}}Home{{/link-to}}
-
-      {{input type="text" value=search action="query"}}
+      {{#link-to 'shows.new'}}New{{/link-to}}
 
       {{outlet}}
 
     </script>
 
-    <script type="text/x-handlebars" id="availableshows">
-      {{#each model}}
-        <p>{{SeriesName}}</p>
-      {{/each}}
-    </script>
-
-    <script type="text/x-handlebars" id="shows">
+    <script type="text/x-handlebars" data-template-name="shows">
       {{#each model}}
         <p>{{#link-to 'show' this}} {{name}} {{/link-to}}</p>
       {{/each}}
       {{outlet}}
     </script>
 
-    <script type="text/x-handlebars" id="show">
+    <script type="text/x-handlebars" data-template-name="show">
       <h1>{{name}}</h1>
       {{#each episodes}}
         <h2>{{name}}</h2>
@@ -38,6 +31,16 @@
       {{/each}}
     </script>
 
+    <script type="text/x-handlebars" data-template-name="shows/new">
+      <h1>new</h1>
+      {{input type="text" value=searchString action='searchSubmit'}}
+    </script>
+
+    <script type="text/x-handlebars" data-template-name="availableshows">
+    {{#each model}}
+      <p>{{SeriesName}}</p>
+    {{/each}}
+    </script>
 
     <script src="js/libs/jquery-1.10.2.js"></script>
     <script src="js/libs/handlebars-1.1.2.js"></script>
